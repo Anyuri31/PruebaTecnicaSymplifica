@@ -3,10 +3,10 @@ name: Run Tests
 on:
   push:
     branches:
-      - EjecucionPruebaTecnica
+      - EjeciconPruebaTecnica
   pull_request:
     branches:
-      - EjecucionPruebaTecnica
+      - EjeciconPruebaTecnica
 jobs:
   # Job 1: Unitarias del backend
   backend-unit:
