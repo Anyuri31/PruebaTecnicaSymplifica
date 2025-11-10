@@ -1,6 +1,5 @@
 name: Run Tests
 
-# Se dispara al hacer push o pull request en tu rama de prueba
 on:
   push:
     branches:
@@ -10,7 +9,7 @@ on:
       - EjeciconPruebaTecnica
 
 jobs:
-  # Job 1: Unitarias del backend
+  # Job 1: Unitarias backend
   backend-unit:
     runs-on: ubuntu-latest
     services:
@@ -26,11 +25,15 @@ jobs:
           --health-cmd "pg_isready -U myusername -d test-local"
           --health-interval 5s
           --health-retries 5
+    env:
+      SEQ_USER: myusername
+      SEQ_PW: mypassword
+      SEQ_DB: test-local
+      SEQ_PORT: 5432
+      SEQ_HOST: postgres
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 21
       - name: Install backend dependencies
@@ -40,28 +43,19 @@ jobs:
         working-directory: ./test-api
         run: npm test
 
-  # Job 2: E2E del frontend con Cypress
+  # Job 2: E2E frontend
   frontend-e2e:
     runs-on: ubuntu-latest
     needs: backend-unit
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: myusername
-          POSTGRES_PASSWORD: mypassword
-          POSTGRES_DB: test-local
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U myusername -d test-local"
-          --health-interval 5s
-          --health-retries 5
+    env:
+      SEQ_USER: myusername
+      SEQ_PW: mypassword
+      SEQ_DB: test-local
+      SEQ_PORT: 5432
+      SEQ_HOST: postgres
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 21
       - name: Install backend dependencies
@@ -70,9 +64,10 @@ jobs:
       - name: Start backend in background
         working-directory: ./test-api
         run: |
+          echo "Starting backend..."
           npm start > backend.log 2>&1 &
-          npx wait-on http://localhost:4000/tasks --timeout 15000
-          cat backend.log
+          echo "Waiting for /tasks endpoint..."
+          npx wait-on http://localhost:4000/tasks --timeout 60000 || (cat backend.log && exit 1)
       - name: Install frontend dependencies
         working-directory: ./test-app
         run: npm install
