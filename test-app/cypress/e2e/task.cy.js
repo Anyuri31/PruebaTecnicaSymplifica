@@ -67,7 +67,7 @@ describe('Validación de campos y funcionalidades del módulo de tareas', () => 
                 cy.contains('Delete').click();
             })
         cy.contains('Descripción a eliminar').should('not.exist');
-        console.log('La tarea fue eliminada correctamente');
+        console.log('La tarea se eliminó correctamente');
     });
 
 });
