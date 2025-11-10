@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   test_postgress_container:
     image: postgres
@@ -10,32 +11,30 @@ services:
       POSTGRES_USER: myusername
       POSTGRES_DB: test-local
     networks:
-      test-network:
-        ipv4_address: 172.20.0.2
+      - test-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U myusername -d test-local"]
       interval: 7s
       timeout: 5s
       retries: 5
     volumes:
-      - test_postgress_volume:/var/lib/postgresql/data
+      - test_postgress_volume:/var/lib/postgresql
 
   test_api_container:
     build: ./test-api
     container_name: testNodeContainer
     ports:
-      - '4000:4000'
+      - "4000:4000"
     command: npm run start
     volumes:
-      - ./test-api:/app/
+      - ./test-api:/app
     networks:
-      test-network:
-        ipv4_address: 172.20.0.3
+      - test-network
     depends_on:
       test_postgress_container:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:4000"]
+      test: ["CMD-SHELL", "curl -f http://localhost:4000 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -44,16 +43,36 @@ services:
     build: ./test-app
     container_name: testReactContainer
     ports:
-      - '3000:3000'
+      - "3000:3000"
     command: npm run start
     volumes:
-      - ./test-app:/app/
+      - ./test-app:/app
     networks:
-      test-network:
-        ipv4_address: 172.20.0.4
+      - test-network
     depends_on:
       test_api_container:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  cypress:
+    image: cypress/included:13.6.4
+    container_name: cypress-tests
+    working_dir: /e2e
+    volumes:
+      - ./test-app:/e2e
+      - /e2e/node_modules
+    depends_on:
+      test_app_container:
+        condition: service_healthy
+      test_api_container:
+        condition: service_healthy
+    networks:
+      - test-network
+    entrypoint: ["npx", "cypress", "run", "--config", "baseUrl=http://test_app_container:3000"]
 
 networks:
   test-network:

@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Task",
-      timestamps: false, 
+      timestamps: true, 
     }
   );
   return Task;

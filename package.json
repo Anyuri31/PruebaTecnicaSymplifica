@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "jest": "^30.2.0"
+  },
+  "scripts": {
+    "test": "jest --runInBand",
+    "test-backend": "jest _tests_/unit --runInBand"
+  }
+}
