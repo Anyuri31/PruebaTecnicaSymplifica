@@ -42,10 +42,11 @@ describe("Task Service - pruebas unitarias", () => {
         Task.findAll.mockRejectedValue(new Error("DB error"));
         await expect(getAllTasks()).rejects.toThrow("DB error");
     });
-
-    /* it("CREATE task - Deberia fallar si los campos están vacíos", async () => {
+    it("CREATE task - Deberia fallar si los campos están vacíos", async () => {
         await expect(createTask({ title: "", description: "", completed: false }))
             .rejects.toThrow("Validation error");
     });
-    */
+    
 });
+
+
